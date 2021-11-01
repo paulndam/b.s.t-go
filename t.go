@@ -77,7 +77,7 @@ func (tree *BinarySearchTree) InsertElement(key int, val int){
 
 }
 
-
+// inserts new tree node in the B.S.T
 func InsertTreeNode(rootNode *TreeNode, newTreeNode *TreeNode){
 	// if new tree node to insert is less than the root node. then move it to the left side of the B.S.T
 	if newTreeNode.key < rootNode.key {
@@ -135,6 +135,184 @@ func Stringify(treeNode *TreeNode, level int){
 	}
 }
 
+// visits all the nodes in order.
+func(tree *BinarySearchTree) InOrderTraverseTree(function func(int)){
+
+	tree.lock.RLock()
+	defer tree.lock.RUnlock()
+
+	inOrderTraverseTree(tree.rootNode,function)
+
+
+}
+// traverse the left node, root node and the right node of the B.S.T
+func inOrderTraverseTree(treeNode *TreeNode, function func(int)){
+
+	if treeNode != nil {
+		inOrderTraverseTree(treeNode.leftNode,function)
+		function(treeNode.value)
+		inOrderTraverseTree(treeNode.rightNode,function)
+	}
+}
+
+// Visit all tree node with pre-order traversing.
+func (tree *BinarySearchTree) PreOrderTraverseTree(function func(int)){
+	tree.lock.Lock()
+	defer tree.lock.Unlock()
+
+	preOrderTraverseTree(tree.rootNode,function)
+}
+
+func preOrderTraverseTree(treeNode *TreeNode, function func(int)){
+
+	if treeNode != nil {
+		preOrderTraverseTree(treeNode.leftNode,function)
+		preOrderTraverseTree(treeNode.rightNode,function)
+	}
+}
+
+// traverse node in post order.
+func (tree *BinarySearchTree) PostOrderTraverseTree(function func(int)){
+	tree.lock.Lock()
+	defer tree.lock.Unlock()
+
+	postOrderTraverseTree(tree.rootNode,function)
+}
+
+func  postOrderTraverseTree(treeNode *TreeNode, function func(int)){
+
+	if treeNode != nil {
+		postOrderTraverseTree(treeNode.leftNode,function)
+		postOrderTraverseTree(treeNode.rightNode,function)
+		function(treeNode.value)
+	}
+}
+
+// return lowest element , checking if val of leftnode is nil.
+func (tree *BinarySearchTree) MinNode() *int{
+	tree.lock.Lock()
+	defer tree.lock.Unlock()
+
+	var treeNode *TreeNode
+	treeNode = tree.rootNode
+
+	if treeNode == nil{
+		// nil instead of 0
+		return(*int)(nil)
+	}
+	for {
+		if treeNode.leftNode == nil {
+			return &treeNode.value
+		}
+		treeNode = treeNode.leftNode
+	}
+}
+
+
+// return max element , checking if val of leftnode is nil.
+func (tree *BinarySearchTree) MaxNode() *int{
+	tree.lock.Lock()
+	defer tree.lock.Unlock()
+
+	var treeNode *TreeNode
+	treeNode = tree.rootNode
+
+	if treeNode == nil{
+		// nil instead of 0
+		return(*int)(nil)
+	}
+	for {
+		if treeNode.rightNode == nil {
+			return &treeNode.value
+		}
+		treeNode = treeNode.rightNode
+	}
+}
+
+// searches a specific node in the B.S.T 
+func (tree *BinarySearchTree) SearchNode(key int) bool {
+
+	tree.lock.Lock()
+	defer tree.lock.Unlock()
+
+	return searchNode(tree.rootNode,key)
+}
+
+func searchNode(treeNode *TreeNode, key int)bool{
+
+	if treeNode == nil {
+		return false
+	}
+
+	if key < treeNode.key{
+		return searchNode(treeNode.leftNode,key)
+	}
+
+	if key > treeNode.key{
+		return searchNode(treeNode.rightNode,key)
+	}
+
+	return true
+}
+
+// removes the element with the key that is been passed in.
+func (tree *BinarySearchTree) RemoveNode(key int){
+	tree.lock.Lock()
+	defer tree.lock.Unlock()
+
+	removeNode(tree.rootNode,key)
+}
+
+func removeNode(treeNode *TreeNode,key int) *TreeNode{
+
+	if treeNode == nil{
+		return nil
+	}
+
+	if key < treeNode.key{
+		treeNode.leftNode = removeNode(treeNode.leftNode,key)
+		return treeNode
+	}
+
+	if key > treeNode.key{
+		treeNode.rightNode = removeNode(treeNode.rightNode,key)
+		return treeNode
+	}
+
+	// key == node.key
+	if treeNode.leftNode == nil && treeNode.rightNode == nil {
+		treeNode = nil
+		return nil
+	}
+
+	if treeNode.leftNode == nil{
+		treeNode = treeNode.rightNode
+		return treeNode
+	}
+
+	if treeNode.rightNode == nil{
+		treeNode = treeNode.leftNode
+		return treeNode
+	}
+
+	var leftMostStringNode *TreeNode
+	leftMostStringNode = treeNode.rightNode
+
+	for {
+		// find smallest value on the right side.
+		if leftMostStringNode != nil && leftMostStringNode.leftNode != nil {
+			leftMostStringNode = leftMostStringNode.leftNode
+		}else{
+			break
+		}
+	}
+	treeNode.key,treeNode.value = leftMostStringNode.key,leftMostStringNode.value
+
+	treeNode.rightNode = removeNode(treeNode.rightNode,treeNode.key)
+
+	return treeNode
+}
+
 func main(){
 
 	var tree *BinarySearchTree = &BinarySearchTree{}
@@ -145,6 +323,11 @@ func main(){
 	tree.InsertElement(1,1)
 	tree.InsertElement(6,6)
 
+
 	tree.String()
+
+	fmt.Println(tree.SearchNode(90))
+	fmt.Println(tree.MinNode())
+	fmt.Println(tree.MaxNode())
 
 }
